@@ -15,6 +15,7 @@ addon.link      = 'https://github.com/seekey13/PacketLogger';
 
 require('common');
 local chat = require('chat');
+local config_ui = require('config_ui');
 
 -- ============================================================================
 -- State Management
@@ -24,10 +25,15 @@ local logger = {
     enabled = false,
     log_file = nil,
     log_path = nil,
-    packet_filter = {},  -- Empty = log all packets, or table of IDs to log
+    filtered_packets = {},  -- Packets in this list will NOT be logged
     packet_count = 0,
     start_time = 0,
 };
+
+-- Initialize config UI
+config_ui.init(logger, function()
+    -- Settings update callback (no-op for now, state is in logger table)
+end);
 
 -- ============================================================================
 -- File Management
@@ -46,7 +52,8 @@ local function init_log_file()
     if logger.log_file then
         logger.log_file:write(string.format('=== PacketLogger Session Started ===\n'))
         logger.log_file:write(string.format('Date: %s\n', os.date('%Y-%m-%d %H:%M:%S')))
-        logger.log_file:write(string.format('Filter: %s\n\n', #logger.packet_filter == 0 and 'ALL' or table.concat(logger.packet_filter, ', ')))
+        logger.log_file:write(string.format('Filtered Packets: %s\n\n', 
+            #logger.filtered_packets == 0 and 'NONE' or table.concat(logger.filtered_packets, ', ')))
         logger.log_file:flush()
         return true
     end
@@ -60,6 +67,8 @@ local function close_log_file()
         logger.log_file:write(string.format('\n=== PacketLogger Session Ended ===\n'))
         logger.log_file:write(string.format('Date: %s\n', os.date('%Y-%m-%d %H:%M:%S')))
         logger.log_file:write(string.format('Total Packets Logged: %d\n', logger.packet_count))
+        logger.log_file:write(string.format('Filtered Packets: %s\n', 
+            #logger.filtered_packets == 0 and 'NONE' or table.concat(logger.filtered_packets, ', ')))
         logger.log_file:close()
         logger.log_file = nil
     end
@@ -92,16 +101,9 @@ local function log_packet(packet_id, data)
         return
     end
     
-    -- Check filter (if filter is set, only log matching packet IDs)
-    if #logger.packet_filter > 0 then
-        local match = false
-        for _, id in ipairs(logger.packet_filter) do
-            if id == packet_id then
-                match = true
-                break
-            end
-        end
-        if not match then
+    -- Check if packet is in filter list (filtered packets are NOT logged)
+    for _, id in ipairs(logger.filtered_packets) do
+        if id == packet_id then
             return
         end
     end
@@ -143,6 +145,10 @@ ashita.events.register('unload', 'logger_unload', function()
     close_log_file()
 end)
 
+ashita.events.register('d3d_present', 'logger_render', function()
+    config_ui.render()
+end)
+
 ashita.events.register('packet_in', 'logger_packet_in', function(e)
     if logger.enabled then
         local data = e.data_modified or e.data
@@ -170,8 +176,7 @@ ashita.events.register('command', 'logger_command', function(e)
         print(chat.header(addon.name) .. chat.message('PacketLogger v' .. addon.version .. ' - Commands:'))
         print(chat.message('/plog start - Start logging packets'))
         print(chat.message('/plog stop - Stop logging packets'))
-        print(chat.message('/plog filter [id1] [id2] ... - Set packet filter (hex, e.g., 0x028)'))
-        print(chat.message('/plog clearfilter - Remove packet filter (log all)'))
+        print(chat.message('/plog config - Open filter configuration window'))
         print(chat.message('/plog status - Show logging status'))
         return
     end
@@ -211,31 +216,10 @@ ashita.events.register('command', 'logger_command', function(e)
         return
     end
     
-    -- Set packet filter
-    if cmd == 'filter' then
-        if #args == 2 then
-            print(chat.header(addon.name) .. chat.warning('Usage: /plog filter [id1] [id2] ... (e.g., /plog filter 0x028 0x029)'))
-            return
-        end
-        
-        logger.packet_filter = {}
-        for i = 3, #args do
-            local id = tonumber(args[i])
-            if id then
-                table.insert(logger.packet_filter, id)
-            else
-                print(chat.header(addon.name) .. chat.warning('Invalid packet ID: ' .. args[i]))
-            end
-        end
-        
-        print(chat.header(addon.name) .. chat.message('Filter set to: ' .. table.concat(logger.packet_filter, ', ')))
-        return
-    end
-    
-    -- Clear packet filter
-    if cmd == 'clearfilter' then
-        logger.packet_filter = {}
-        print(chat.header(addon.name) .. chat.message('Filter cleared. Logging all packets.'))
+    -- Open config window
+    if cmd == 'config' then
+        config_ui.open()
+        print(chat.header(addon.name) .. chat.message('Filter configuration window opened'))
         return
     end
     
@@ -248,11 +232,10 @@ ashita.events.register('command', 'logger_command', function(e)
             print(chat.message('Packets logged: ' .. logger.packet_count))
             print(chat.message('Elapsed time: ' .. (os.time() - logger.start_time) .. ' seconds'))
         end
-        print(chat.message('Filter: ' .. (#logger.packet_filter == 0 and 'ALL' or table.concat(logger.packet_filter, ', '))))
+        print(chat.message('Filtered Packets: ' .. (#logger.filtered_packets == 0 and 'NONE' or table.concat(logger.filtered_packets, ', '))))
         return
     end
     
     -- Unknown command
     print(chat.header(addon.name) .. chat.error('Unknown command: ' .. cmd))
 end)
-
