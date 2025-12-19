@@ -106,6 +106,24 @@ local function log_packet(packet_id, data)
         if id == packet_id then
             return
         end
+        
+        -- Check for sub-packet filters (e.g., 0x028_0x1844 for autoattack)
+        if type(id) == 'string' and id:find('_') then
+            local parts = {}
+            for part in id:gmatch('[^_]+') do
+                table.insert(parts, tonumber(part))
+            end
+            
+            if #parts == 2 and parts[1] == packet_id then
+                -- For 0x028 packets, check action category at offset 10 (0-indexed)
+                if packet_id == 0x028 and data:len() >= 12 then
+                    local category = data:byte(11) + (data:byte(12) * 256)
+                    if category == parts[2] then
+                        return
+                    end
+                end
+            end
+        end
     end
     
     logger.packet_count = logger.packet_count + 1

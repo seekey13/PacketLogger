@@ -10,7 +10,7 @@ local imgui = require('imgui');
 -- State
 -- ============================================================================
 
-local config_ui_visible = { false };
+local config_ui_visible = { true };
 
 -- Settings reference (set via init)
 local settings = nil;
@@ -38,6 +38,8 @@ local PACKET_FILTERS = {
     
     -- Combat/Action Updates
     { id = 0x028, name = '0x028 - Action' },
+    { id = '0x028_0x1844', name = '0x028 (0x1844) - Autoattack' },
+    { id = '0x028_0x58E0', name = '0x028 (0x58E0) - Healing/Regen' },
     { id = 0x029, name = '0x029 - Message' },
     { id = 0x076, name = '0x076 - Party Effects Update' },
     
@@ -72,10 +74,10 @@ local PACKET_FILTERS = {
 -- UI State Variables (for imgui)
 -- ============================================================================
 
--- Create checkbox state for each packet filter
+-- Create checkbox state for each packet filter (default enabled)
 local filter_states = {};
 for i, filter in ipairs(PACKET_FILTERS) do
-    filter_states[filter.id] = { false };
+    filter_states[filter.id] = { true };
 end
 
 -- ============================================================================
@@ -128,6 +130,14 @@ end
 function config_ui.init(s, update_fn)
     settings = s;
     update_settings_fn = update_fn;
+    
+    -- If no filters set, enable all by default
+    if not settings.filtered_packets or #settings.filtered_packets == 0 then
+        for i, filter in ipairs(PACKET_FILTERS) do
+            table.insert(settings.filtered_packets, filter.id);
+        end
+    end
+    
     sync_from_settings();
 end
 
