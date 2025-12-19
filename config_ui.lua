@@ -31,43 +31,43 @@ local MAX_WINDOW_HEIGHT = 800;
 
 local PACKET_FILTERS = {
     -- High-Frequency Position/Movement Updates
-    { id = 0x00D, name = '0x00D - NPC Update' },
-    { id = 0x00E, name = '0x00E - Entity Update' },
-    { id = 0x00F, name = '0x00F - Entity Movement Complete' },
-    { id = 0x015, name = '0x015 - Data Download' },
+    { id = 13, name = '0x00D - NPC Update' },
+    { id = 14, name = '0x00E - Entity Update' },
+    { id = 15, name = '0x00F - Entity Movement Complete' },
+    { id = 21, name = '0x015 - Data Download' },
     
     -- Combat/Action Updates
-    { id = 0x028, name = '0x028 - Action' },
+    { id = 40, name = '0x028 - Action' },
     { id = '0x028_0x1844', name = '0x028 (0x1844) - Autoattack' },
     { id = '0x028_0x58E0', name = '0x028 (0x58E0) - Healing/Regen' },
-    { id = 0x029, name = '0x029 - Message' },
-    { id = 0x076, name = '0x076 - Party Effects Update' },
+    { id = 41, name = '0x029 - Message' },
+    { id = 118, name = '0x076 - Party Effects Update' },
     
     -- Inventory/Equipment
-    { id = 0x01E, name = '0x01E - Modify Inventory' },
-    { id = 0x01F, name = '0x01F - Item Update' },
-    { id = 0x020, name = '0x020 - Inventory Finish' },
-    { id = 0x050, name = '0x050 - Equipment Update' },
+    { id = 30, name = '0x01E - Modify Inventory' },
+    { id = 31, name = '0x01F - Item Update' },
+    { id = 32, name = '0x020 - Inventory Finish' },
+    { id = 80, name = '0x050 - Equipment Update' },
     
     -- UI/Menu Updates
-    { id = 0x034, name = '0x034 - Char Appearance' },
-    { id = 0x037, name = '0x037 - Character Update' },
-    { id = 0x061, name = '0x061 - Server Message' },
-    { id = 0x063, name = '0x063 - Party Status Icons' },
+    { id = 52, name = '0x034 - Char Appearance' },
+    { id = 55, name = '0x037 - Character Update' },
+    { id = 97, name = '0x061 - Server Message' },
+    { id = 99, name = '0x063 - Party Status Icons' },
     
     -- Zone/Loading
-    { id = 0x00A, name = '0x00A - Zone In' },
-    { id = 0x00B, name = '0x00B - Zone Out' },
-    { id = 0x01D, name = '0x01D - Server IP' },
+    { id = 10, name = '0x00A - Zone In' },
+    { id = 11, name = '0x00B - Zone Out' },
+    { id = 29, name = '0x01D - Server IP' },
     
     -- Chat/Communication
-    { id = 0x017, name = '0x017 - Chat Message' },
-    { id = 0x01B, name = '0x01B - Server Message' },
+    { id = 23, name = '0x017 - Chat Message' },
+    { id = 27, name = '0x01B - Server Message' },
     
     -- Additional Common Packets
-    { id = 0x067, name = '0x067 - Examine' },
-    { id = 0x0DF, name = '0x0DF - Character Stats' },
-    { id = 0x119, name = '0x119 - Chat Channel' },
+    { id = 103, name = '0x067 - Examine' },
+    { id = 223, name = '0x0DF - Character Stats' },
+    { id = 281, name = '0x119 - Chat Channel' },
 };
 
 -- ============================================================================
